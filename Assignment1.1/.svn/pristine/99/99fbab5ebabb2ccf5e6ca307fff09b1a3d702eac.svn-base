@@ -1,0 +1,216 @@
+package chess.junit;
+
+import static org.junit.Assert.*;
+import java.awt.Color;
+import java.util.ArrayList;
+import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+
+public class PathTest 
+{
+	private static final int BLACK = 1, WHITE = -1;
+	private static final int ROW = 8, COL = 8;
+	private static final int originX = 0, originY = 0;
+	private static final int centerX = ROW/2, centerY = COL/2;
+	private static final int edgeX = originX, edgeY = originY+1;
+	private static  Path generator;
+	private static Board board;  // only a single piece
+	private static Board barrierBoard; // Board with multiple pieces, obstacles
+	private static ArrayList<Square> list;
+	static Piece wQueen;
+	
+	static Piece [] wPawns,bPawns;
+	
+	
+	
+	@BeforeClass
+    public static void setUpBeforeClass() throws Exception
+    {
+		board = new Board(ROW,COL);
+		wQueen = new Queen (WHITE, "wQ");
+		generator = new Path();
+		wQueen.setReachableList(new ArrayList<Square>());
+		list = new ArrayList<Square>();
+		
+		barrierBoard = new Board(ROW,COL);
+		
+		bPawns = new Piece[COL];
+		wPawns = new Piece[COL];
+		for (int i = 0; i < COL;i++)
+			bPawns[i] = new Pawn(BLACK,"bP");
+		
+		for (int i = 0; i < COL;i++)
+			wPawns[i] = new Pawn(WHITE,"wP");
+		
+		Piece [][]board = new Piece[][] {
+				{null,		null,	  null,		null,	 	wPawns[4],	null,	   null,	    null},
+				{null,		null,	  null,		bPawns[2], 	null,		null,	   null,	    bPawns[7]},
+				{bPawns[0],	null,	  null,		null,	    null,		bPawns[5], bPawns[6],   null},
+				{null,	  	null	,null,		bPawns[3],  null,		null,	   null,	    null},
+				{null, 		bPawns[1], null,	null,	    null,	    null,  	   null,        null},
+				{null,		wPawns[1],null,null,	    null,		null,	   null,	    null},
+				{wPawns[0],	null,	  wPawns[2],		null,	   null,		null, 	   wPawns[7],	 	null},
+				{null, 		null,	  null,		null,	     bPawns[4],	    null,  	   null,        null}
+			};
+		barrierBoard.setWholeBoard(board);
+		barrierBoard.update();
+    }
+	
+	@Test
+	public void testCheckVertical() 
+	{
+		int x,y,size1,size2;
+		Board b;
+		
+		x = centerX;
+		y = centerY;
+		size1 = 3;
+		size2 = 4;
+		b = board;	
+		
+		checkVerticalHelper(x, y, size1, size2, b);
+		
+		
+		 x = originX;
+		 y = originY;
+		 size1 = 7;
+		 size2 = 0;	
+		b = board;	
+		checkVerticalHelper(x, y, size1, size2, b);
+		
+		 x = edgeX;
+		 y = edgeY;
+		 size1 = 7;
+		 size2 = 0;
+		 b = board;
+		checkVerticalHelper(x, y, size1, size2, b);
+		
+		
+		x = centerX;
+		y = centerY;
+		size1 = 3;
+		size2 = 3;
+		b = barrierBoard;
+		checkVerticalHelper(x, y, size1, size2, b);
+		
+	}
+
+	
+	
+	@Test
+	public void testCheckHorizontal() 
+	{	
+		int x,y,size1,size2;
+		Board b;
+		
+		x = centerX;
+		y = centerY;
+		size1 = 4;
+		size2 = 3;
+		b = board;	
+		CheckHorizontalHelper(x, y, size1, size2, b);
+			
+		 x = originX;
+		 y = originY;
+		 size1 = 0;
+		 size2 = 7;
+		 b = board;
+		CheckHorizontalHelper(x, y, size1, size2, b);
+		
+		
+		 x = edgeX;
+		 y = edgeY;
+		 size1 = 1;
+		 size2 = 6;
+		 b = board;
+		CheckHorizontalHelper(x, y, size1, size2, b);
+		
+		
+		x = centerX;
+		y = centerY;
+		size1 = 3;
+		size2 = 3;
+		 b = barrierBoard;
+		CheckHorizontalHelper(x, y, size1, size2, b);
+	}
+
+	
+	
+	@Test
+	public void testCheckDiagnol() 
+	{
+		int x,y,size;
+		Board b;
+		
+		x = centerX;
+		y = centerY;
+		b = board;
+		size = 13;
+		
+		checkDiagnoalHelper(x, y, size, b);
+		
+		x = originX;
+		y = originY;
+		b = board;
+		size = 7;
+		
+		checkDiagnoalHelper(x, y, size, b);
+		
+		x = edgeX;
+		y = edgeY;
+		b = board;
+		size = 7;
+		
+		checkDiagnoalHelper(x, y, size, b);
+		
+		
+		x = centerX;
+		y = centerY;
+		b = barrierBoard;
+		size = 5;
+		checkDiagnoalHelper(x, y, size, b);		
+		
+	}
+	
+	
+	
+	//_________Refractored Helper Functions_________________________
+	
+	private void CheckHorizontalHelper(int x, int y, int size1, int size2,
+			Board b) {
+		b.place_init(wQueen, x, y);
+		list = generator.checkLeft(wQueen, b, x, y);
+		assertEquals(list.size(),size1);
+		list = generator.checkRight(wQueen, b, x, y);
+		assertEquals(list.size(),size2);
+		if (b.getBoard(6, 0) == null)
+			b.resetBoard();
+	}
+	
+	private void checkVerticalHelper(int x, int y, int size1, int size2, Board b) {
+		b.place_init(wQueen, x, y);
+		list = generator.checkUp(wQueen, b, x, y);
+		assertEquals(list.size(), size1);
+		list = generator.checkDown(wQueen, b, x, y);
+		assertEquals(list.size(), size2);
+		if (b.getBoard(6, 0) == null)
+			b.resetBoard();
+	}
+	
+	private void checkDiagnoalHelper(int x, int y, int size, Board b) {
+		b.place_init(wQueen, x, y);
+		list = generator.checkUpLeft(wQueen, b,x, y);
+		list.addAll ( generator.checkUpRight(wQueen,b, x, y) );
+		list.addAll ( generator.checkDownLeft(wQueen, b, x, y) );
+		list.addAll ( generator.checkDownRight(wQueen, b, x, y) );
+		assertEquals(list.size(), size);
+		if (b.getBoard(6, 0) == null)
+			b.resetBoard();
+	}
+	
+}
